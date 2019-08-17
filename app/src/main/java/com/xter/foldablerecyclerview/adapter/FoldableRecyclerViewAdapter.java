@@ -69,7 +69,7 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 			}
 			mSize = totalSize;
 		}
-		System.out.println("itemCount="+mSize);
+//		System.out.println("itemCount="+mSize);
 		return mSize;
 	}
 
@@ -102,6 +102,11 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 		return FoldableViewHolder.GROUP;
 	}
 
+	/**
+	 *  根据索引返回Unit中的K或V
+	 * @param position 索引
+	 * @return K/V
+	 */
 	public Object getItem(int position) {
 		int currentPosition = -1;
 		for (Unit unit : mData) {
@@ -127,9 +132,14 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 		return null;
 	}
 
-	private Unit getUnit(int position) {
+	/**
+	 * 根据索引确定返回某个数据集
+	 * @param position 索引
+	 * @return Unit
+	 */
+	private Unit<K,V> getUnit(int position) {
 		int currentPosition = -1;
-		for (Unit unit : mData) {
+		for (Unit<K,V> unit : mData) {
 			//算上group
 			currentPosition += unit.folded ? 1 : unit.children.size() + 1;
 			if (position <= currentPosition)
@@ -153,9 +163,9 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 		viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				System.out.println("click="+viewHolder.getAdapterPosition());
-				if (getItemViewType(viewHolder.getAdapterPosition()) == FoldableViewHolder.GROUP) {
-					Unit unit = getUnit(viewHolder.getAdapterPosition());
+//				System.out.println("click="+viewHolder.getAdapterPosition());
+				if (viewHolder instanceof GroupViewHolder) {
+					Unit<K,V> unit = getUnit(viewHolder.getAdapterPosition());
 					unit.folded = !unit.folded;
 					mSize = 0;
 //					notifyDataSetChanged();//最准确，但数据多时性能有影响
@@ -200,12 +210,6 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 			this.convertView = itemView;
 		}
 
-		abstract int getmItemViewType();
-
-		public View getConvertView() {
-			return convertView;
-		}
-
 		@SuppressWarnings("unchecked")
 		public <T extends View> T getView(int resId) {
 			View v = views.get(resId);
@@ -223,22 +227,12 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 			super(itemView);
 		}
 
-		@Override
-		int getmItemViewType() {
-			return GROUP;
-		}
-
 	}
 
 	protected static class ChildViewHolder extends FoldableViewHolder {
 
 		public ChildViewHolder(@NonNull View itemView) {
 			super(itemView);
-		}
-
-		@Override
-		int getmItemViewType() {
-			return CHILD;
 		}
 	}
 
@@ -251,7 +245,7 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 	public static class Unit<K, V> {
 		public K group;
 		public List<V> children;
-		public boolean folded;
+		public boolean folded = true;
 
 		public Unit(K group, List<V> children) {
 			this.group = group;
