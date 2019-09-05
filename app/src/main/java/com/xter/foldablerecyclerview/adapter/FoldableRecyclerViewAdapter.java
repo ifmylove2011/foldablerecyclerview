@@ -195,6 +195,35 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 	public abstract void onBindView(FoldableViewHolder holder, int position);
 
 
+	/*------------------ 关于数据的增删改  ------------------*/
+
+
+	public void add(Unit<K,V> element) {
+		mData.add(element);
+		mSize = 0;
+		notifyDataSetChanged();
+	}
+
+	public void add(List<Unit<K,V>> elemList) {
+		mData.addAll(elemList);
+		mSize = 0;
+		notifyDataSetChanged();
+	}
+
+	public void remove(Unit<K,V> elem) {
+		mData.remove(elem);
+		mSize = 0;
+		notifyDataSetChanged();
+	}
+
+	public void replace(List<Unit<K,V>> elemList) {
+		mData.clear();
+		mData.addAll(elemList);
+		mSize = 0;
+		notifyDataSetChanged();
+	}
+
+
 	/*------------------ 一些准备工作，定义数据或Holder之类  ------------------*/
 
 	protected static abstract class FoldableViewHolder extends RecyclerView.ViewHolder {
