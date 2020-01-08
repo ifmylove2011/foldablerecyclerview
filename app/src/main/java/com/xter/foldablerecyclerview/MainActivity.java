@@ -2,8 +2,6 @@ package com.xter.foldablerecyclerview;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 
 import com.xter.foldablerecyclerview.adapter.FoldableRecyclerViewAdapter;
 import com.xter.foldablerecyclerview.adapter.QuickItemDecoration;
@@ -12,6 +10,9 @@ import com.xter.foldablerecyclerview.entity.File;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends Activity {
 
