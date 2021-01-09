@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -104,7 +105,8 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 	}
 
 	/**
-	 *  根据索引返回Unit中的K或V
+	 * 根据索引返回Unit中的K或V
+	 *
 	 * @param position 索引
 	 * @return K/V
 	 */
@@ -135,12 +137,13 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 
 	/**
 	 * 根据索引确定返回某个数据集
+	 *
 	 * @param position 索引
 	 * @return Unit
 	 */
-	private Unit<K,V> getUnit(int position) {
+	private Unit<K, V> getUnit(int position) {
 		int currentPosition = -1;
-		for (Unit<K,V> unit : mData) {
+		for (Unit<K, V> unit : mData) {
 			//算上group
 			currentPosition += unit.folded ? 1 : unit.children.size() + 1;
 			if (position <= currentPosition)
@@ -166,26 +169,28 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 			public void onClick(View v) {
 //				System.out.println("click="+viewHolder.getAdapterPosition());
 				if (viewHolder instanceof GroupViewHolder) {
-					Unit<K,V> unit = getUnit(viewHolder.getAdapterPosition());
+					Unit<K, V> unit = getUnit(viewHolder.getAdapterPosition());
 					unit.folded = !unit.folded;
 					mSize = 0;
 //					notifyDataSetChanged();//最准确，但数据多时性能有影响
 //					notifyItemRangeChanged(viewHolder.getAdapterPosition()+1,getItemCount());//需要考虑到holder的旧索引问题，暂无太好的办法去规避
-					if(unit.folded){
-						notifyItemRangeRemoved(viewHolder.getAdapterPosition()+1,unit.children.size());
-					}else{
-						notifyItemRangeInserted(viewHolder.getAdapterPosition()+1,unit.children.size());
+					if (unit.folded) {
+						notifyItemRangeRemoved(viewHolder.getAdapterPosition() + 1, unit.children.size());
+					} else {
+						notifyItemRangeInserted(viewHolder.getAdapterPosition() + 1, unit.children.size());
 					}
 				}
-				if (itemClickLitener != null)
+				if (itemClickLitener != null) {
 					itemClickLitener.onItemClick(viewHolder.itemView, viewHolder.getLayoutPosition());
+				}
 			}
 		});
 		viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View v) {
-				if (itemClickLitener != null)
+				if (itemClickLitener != null) {
 					itemClickLitener.onItemLongClick(viewHolder.itemView, viewHolder.getLayoutPosition());
+				}
 				return true;
 			}
 		});
@@ -199,31 +204,51 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 	/*------------------ 关于数据的增删改  ------------------*/
 
 
-	public void add(Unit<K,V> element) {
+	public void add(Unit<K, V> element) {
 		mData.add(element);
 		mSize = 0;
 		notifyDataSetChanged();
 	}
 
-	public void add(List<Unit<K,V>> elemList) {
+	public void add(List<Unit<K, V>> elemList) {
 		mData.addAll(elemList);
 		mSize = 0;
 		notifyDataSetChanged();
 	}
 
-	public void remove(Unit<K,V> elem) {
+	public void remove(Unit<K, V> elem) {
 		mData.remove(elem);
 		mSize = 0;
 		notifyDataSetChanged();
 	}
 
-	public void replace(List<Unit<K,V>> elemList) {
+	public void replace(List<Unit<K, V>> elemList) {
 		mData.clear();
 		mData.addAll(elemList);
 		mSize = 0;
 		notifyDataSetChanged();
 	}
 
+	public void itemRemove(int position) {
+		if (position < 0 || position > mSize - 1) {
+			return;
+		}
+		Unit unit = getUnit(position);
+		Object item = getItem(position);
+		if (item == unit.group) {
+			mData.remove(unit);
+			if (unit.folded) {
+				//折叠状态，只动父级
+				mSize = mSize - 1;
+			} else {
+				mSize = mSize - 1 - unit.children.size();
+			}
+		} else {
+			unit.children.remove(item);
+			mSize = mSize - 1;
+		}
+		notifyDataSetChanged();
+	}
 
 	/*------------------ 一些准备工作，定义数据或Holder之类  ------------------*/
 
@@ -289,6 +314,28 @@ public abstract class FoldableRecyclerViewAdapter<K, V> extends RecyclerView.Ada
 		public Unit(K group, List<V> children, boolean folded) {
 			this(group, children);
 			this.folded = folded;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			Unit<?, ?> unit = (Unit<?, ?>) o;
+			return Objects.equals(group, unit.group);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(group);
+		}
+
+		@Override
+		public String toString() {
+			return "Unit{" +
+					"group=" + group +
+					", children=" + children +
+					", folded=" + folded +
+					'}';
 		}
 	}
 }
